@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, FileText, Calendar, MessageSquare } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building, Calendar, MessageSquare } from 'lucide-react';
 import SessionsTable from '@/components/SessionsTable';
 import KramamkTable from '@/components/KramamkTable';
 import DebatesTable from '@/components/DebatesTable';
@@ -13,6 +15,9 @@ const Index = () => {
   const [sessionsData, setSessionsData] = useState([]);
   const [kramamkData, setKramamkData] = useState([]);
   const [debatesData, setDebatesData] = useState([]);
+  const [filteredKramamkData, setFilteredKramamkData] = useState([]);
+  const [filteredDebatesData, setFilteredDebatesData] = useState([]);
+  const [selectedSession, setSelectedSession] = useState('');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -36,6 +41,8 @@ const Index = () => {
         setSessionsData(sessions);
         setKramamkData(kramank);
         setDebatesData(debates);
+        setFilteredKramamkData(kramank);
+        setFilteredDebatesData(debates);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -50,6 +57,24 @@ const Index = () => {
 
     fetchData();
   }, [toast]);
+
+  const handleSessionChange = (sessionId: string) => {
+    setSelectedSession(sessionId);
+    
+    if (sessionId === 'all' || sessionId === '') {
+      setFilteredKramamkData(kramamkData);
+      setFilteredDebatesData(debatesData);
+    } else {
+      // Filter kramank data by session
+      const filteredKramank = kramamkData.filter(item => item.session_id === sessionId);
+      setFilteredKramamkData(filteredKramank);
+      
+      // Filter debates data by session (assuming debates have kramank_id that can be matched)
+      const kramankIds = filteredKramank.map(item => item.id);
+      const filteredDebates = debatesData.filter(debate => kramankIds.includes(debate.kramank_id));
+      setFilteredDebatesData(filteredDebates);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -75,8 +100,8 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Stats Cards - Only Sessions and Debates */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
@@ -90,22 +115,11 @@ const Index = () => {
 
           <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Kramamk Records</CardTitle>
-              <FileText className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{kramamkData.length}</div>
-              <p className="text-xs text-muted-foreground">Total proceedings</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Debates</CardTitle>
               <MessageSquare className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{debatesData.length}</div>
+              <div className="text-2xl font-bold text-purple-600">{filteredDebatesData.length}</div>
               <p className="text-xs text-muted-foreground">Recorded discussions</p>
             </CardContent>
           </Card>
@@ -116,19 +130,39 @@ const Index = () => {
           <CardHeader>
             <CardTitle className="text-xl text-gray-900">Vidhan Bhavan Records</CardTitle>
             <CardDescription>
-              Manage sessions, kramamk data, and debates from the legislative assembly
+              Manage sessions, members, karywalis, and debates from the legislative assembly
             </CardDescription>
+            
+            {/* Session Selection Dropdown */}
+            <div className="flex items-center space-x-4 pt-4">
+              <label htmlFor="session-select" className="text-sm font-medium text-gray-700">
+                Select Session:
+              </label>
+              <Select value={selectedSession} onValueChange={handleSessionChange}>
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Select a session" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border shadow-lg z-50">
+                  <SelectItem value="all">All Sessions</SelectItem>
+                  {sessionsData.map((session: any) => (
+                    <SelectItem key={session.id} value={session.id}>
+                      {session.id} - {session.year} ({session.type})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="sessions" className="w-full">
+            <Tabs defaultValue="members" className="w-full">
               <TabsList className="grid w-full grid-cols-3 mb-6">
-                <TabsTrigger value="sessions" className="flex items-center space-x-2">
+                <TabsTrigger value="members" className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4" />
-                  <span>Sessions</span>
+                  <span>Members</span>
                 </TabsTrigger>
-                <TabsTrigger value="kramamk" className="flex items-center space-x-2">
-                  <FileText className="h-4 w-4" />
-                  <span>Kramamk</span>
+                <TabsTrigger value="karywalis" className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>Karywalis</span>
                 </TabsTrigger>
                 <TabsTrigger value="debates" className="flex items-center space-x-2">
                   <MessageSquare className="h-4 w-4" />
@@ -136,20 +170,26 @@ const Index = () => {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="sessions">
-                <SessionsTable data={sessionsData} loading={loading} />
+              <TabsContent value="members">
+                <KramamkTable data={filteredKramamkData} loading={loading} />
               </TabsContent>
 
-              <TabsContent value="kramamk">
-                <KramamkTable data={kramamkData} loading={loading} />
+              <TabsContent value="karywalis">
+                <KramamkTable data={filteredKramamkData} loading={loading} />
               </TabsContent>
 
               <TabsContent value="debates">
                 <DebatesTable 
-                  data={debatesData} 
+                  data={filteredDebatesData} 
                   loading={loading}
                   onUpdate={(updatedDebate) => {
                     setDebatesData(prev => 
+                      prev.map(debate => 
+                        debate.id === updatedDebate.id ? updatedDebate : debate
+                      )
+                    );
+                    // Also update filtered data
+                    setFilteredDebatesData(prev => 
                       prev.map(debate => 
                         debate.id === updatedDebate.id ? updatedDebate : debate
                       )

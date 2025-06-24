@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Table,
@@ -8,15 +7,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Session {
-  id: number;
-  session_name: string;
-  start_date: string;
-  end_date: string;
-  status: string;
+  id: string;
+  year: string;
+  type: string;
+  house: string;
+  status?: string;
+  user?: string;
+  last_update?: string;
+  created_at?: string;
+  [key: string]: any;
 }
 
 interface SessionsTableProps {
@@ -40,33 +42,32 @@ const SessionsTable: React.FC<SessionsTableProps> = ({ data, loading }) => {
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
-            <TableHead className="font-semibold">Session Name</TableHead>
-            <TableHead className="font-semibold">Start Date</TableHead>
-            <TableHead className="font-semibold">End Date</TableHead>
+            <TableHead className="font-semibold">Session ID</TableHead>
+            <TableHead className="font-semibold">Year</TableHead>
+            <TableHead className="font-semibold">Type</TableHead>
+            <TableHead className="font-semibold">House</TableHead>
             <TableHead className="font-semibold">Status</TableHead>
+            <TableHead className="font-semibold">User</TableHead>
+            <TableHead className="font-semibold">Last Update</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                 No sessions found
               </TableCell>
             </TableRow>
           ) : (
             data.map((session) => (
               <TableRow key={session.id} className="hover:bg-gray-50 transition-colors">
-                <TableCell className="font-medium">{session.session_name}</TableCell>
-                <TableCell>{new Date(session.start_date).toLocaleDateString()}</TableCell>
-                <TableCell>{new Date(session.end_date).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <Badge 
-                    variant={session.status === 'Active' ? 'default' : 'secondary'}
-                    className={session.status === 'Active' ? 'bg-green-100 text-green-800' : ''}
-                  >
-                    {session.status}
-                  </Badge>
-                </TableCell>
+                <TableCell className="font-medium font-mono">{session.id}</TableCell>
+                <TableCell>{session.year}</TableCell>
+                <TableCell>{session.type}</TableCell>
+                <TableCell>{session.house}</TableCell>
+                <TableCell>{session.status || ''}</TableCell>
+                <TableCell>{session.user || ''}</TableCell>
+                <TableCell>{session.last_update || ''}</TableCell>
               </TableRow>
             ))
           )}

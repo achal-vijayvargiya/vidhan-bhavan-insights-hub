@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -16,13 +15,15 @@ import { Save, X } from 'lucide-react';
 
 interface Debate {
   id: number;
-  session_id: number;
-  kramamk_id: number;
-  debate_title: string;
-  speaker: string;
+  kramank_id: number;
+  topic: string;
+  members: string[] | string;
   date: string;
-  duration: string;
-  content: string;
+  text: string;
+  status?: string;
+  user?: string;
+  last_update?: string;
+  [key: string]: any;
 }
 
 interface DebateEditModalProps {
@@ -38,11 +39,13 @@ const DebateEditModal: React.FC<DebateEditModalProps> = ({
   onClose,
   onUpdate,
 }) => {
-  const [formData, setFormData] = useState<Debate>(debate);
+  // Convert members to string for editing
+  const membersString = Array.isArray(debate.members) ? debate.members.join(', ') : (debate.members || '');
+  const [formData, setFormData] = useState<Debate>({ ...debate, members: membersString });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setFormData(debate);
+    setFormData({ ...debate, members: Array.isArray(debate.members) ? debate.members.join(', ') : (debate.members || '') });
   }, [debate]);
 
   const handleInputChange = (field: keyof Debate, value: string | number) => {
@@ -54,11 +57,13 @@ const DebateEditModal: React.FC<DebateEditModalProps> = ({
 
   const handleUpdate = async () => {
     setIsLoading(true);
-    
-    // Simulate API call delay
+    // Convert members back to array if needed
+    const updatedDebate = {
+      ...formData,
+      members: typeof formData.members === 'string' ? formData.members.split(',').map(m => m.trim()).filter(Boolean) : formData.members,
+    };
     setTimeout(() => {
-      console.log('Updating debate:', formData);
-      onUpdate(formData);
+      onUpdate(updatedDebate);
       setIsLoading(false);
     }, 500);
   };
@@ -74,30 +79,25 @@ const DebateEditModal: React.FC<DebateEditModalProps> = ({
             Make changes to the debate information. Click update when you're done.
           </DialogDescription>
         </DialogHeader>
-        
         <div className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="debate_title">Debate Title</Label>
-              <Input
-                id="debate_title"
-                value={formData.debate_title}
-                onChange={(e) => handleInputChange('debate_title', e.target.value)}
-                placeholder="Enter debate title"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="speaker">Speaker</Label>
-              <Input
-                id="speaker"
-                value={formData.speaker}
-                onChange={(e) => handleInputChange('speaker', e.target.value)}
-                placeholder="Enter speaker name"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="topic">Topic</Label>
+            <Input
+              id="topic"
+              value={formData.topic}
+              onChange={(e) => handleInputChange('topic', e.target.value)}
+              placeholder="Enter debate topic"
+            />
           </div>
-
+          <div className="space-y-2">
+            <Label htmlFor="members">Members (comma separated)</Label>
+            <Input
+              id="members"
+              value={formData.members}
+              onChange={(e) => handleInputChange('members', e.target.value)}
+              placeholder="Enter members, separated by commas"
+            />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="date">Date</Label>
@@ -108,54 +108,37 @@ const DebateEditModal: React.FC<DebateEditModalProps> = ({
                 onChange={(e) => handleInputChange('date', e.target.value)}
               />
             </div>
-            
             <div className="space-y-2">
-              <Label htmlFor="duration">Duration</Label>
+              <Label htmlFor="kramank_id">Kramank ID</Label>
               <Input
-                id="duration"
-                value={formData.duration}
-                onChange={(e) => handleInputChange('duration', e.target.value)}
-                placeholder="e.g., 45 min"
+                id="kramank_id"
+                type="number"
+                value={formData.kramank_id}
+                onChange={(e) => handleInputChange('kramank_id', parseInt(e.target.value))}
+                placeholder="Kramank ID"
               />
             </div>
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
+            <Label htmlFor="text">Debate Text</Label>
             <Textarea
-              id="content"
-              value={formData.content}
-              onChange={(e) => handleInputChange('content', e.target.value)}
-              placeholder="Enter debate content..."
+              id="text"
+              value={formData.text}
+              onChange={(e) => handleInputChange('text', e.target.value)}
+              placeholder="Enter debate text..."
               className="min-h-[120px] resize-none"
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="session_id">Session ID</Label>
-              <Input
-                id="session_id"
-                type="number"
-                value={formData.session_id}
-                onChange={(e) => handleInputChange('session_id', parseInt(e.target.value))}
-                placeholder="Session ID"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="kramamk_id">Kramamk ID</Label>
-              <Input
-                id="kramamk_id"
-                type="number"
-                value={formData.kramamk_id}
-                onChange={(e) => handleInputChange('kramamk_id', parseInt(e.target.value))}
-                placeholder="Kramamk ID"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Input
+              id="status"
+              value={formData.status || ''}
+              onChange={(e) => handleInputChange('status', e.target.value)}
+              placeholder="Status"
+            />
           </div>
         </div>
-
         <DialogFooter className="flex justify-end space-x-2">
           <Button 
             variant="outline" 

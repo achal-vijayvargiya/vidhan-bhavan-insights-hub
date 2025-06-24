@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +7,8 @@ import KramamkTable from '@/components/KramamkTable';
 import DebatesTable from '@/components/DebatesTable';
 import { useToast } from '@/hooks/use-toast';
 
+const API_BASE = "http://localhost:8000";
+
 const Index = () => {
   const [sessionsData, setSessionsData] = useState([]);
   const [kramamkData, setKramamkData] = useState([]);
@@ -15,41 +16,27 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Mock data for development - replace with actual FastAPI calls
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Mock sessions data
-        const mockSessions = [
-          { id: 1, session_name: "Budget Session 2024", start_date: "2024-01-15", end_date: "2024-03-30", status: "Active" },
-          { id: 2, session_name: "Monsoon Session 2023", start_date: "2023-07-15", end_date: "2023-09-15", status: "Completed" },
-          { id: 3, session_name: "Winter Session 2023", start_date: "2023-11-15", end_date: "2023-12-20", status: "Completed" },
-        ];
 
-        // Mock kramamk data
-        const mockKramamk = [
-          { id: 1, session_id: 1, kramamk_number: "K001", title: "Budget Discussion", date: "2024-01-16", type: "Discussion" },
-          { id: 2, session_id: 1, kramamk_number: "K002", title: "Question Hour", date: "2024-01-17", type: "Question" },
-          { id: 3, session_id: 2, kramamk_number: "K003", title: "Bill Presentation", date: "2023-07-16", type: "Bill" },
-        ];
+        // Fetch sessions
+        const sessionsRes = await fetch(`${API_BASE}/sessions`);
+        const sessions = await sessionsRes.json();
 
-        // Mock debates data
-        const mockDebates = [
-          { id: 1, session_id: 1, kramamk_id: 1, debate_title: "Budget Allocation Discussion", speaker: "Hon. Minister", date: "2024-01-16", duration: "45 min", content: "Discussion on budget allocation for infrastructure development." },
-          { id: 2, session_id: 1, kramamk_id: 2, debate_title: "Education Policy Query", speaker: "Hon. Member XYZ", date: "2024-01-17", duration: "20 min", content: "Questions regarding new education policy implementation." },
-          { id: 3, session_id: 2, kramamk_id: 3, debate_title: "Healthcare Bill Debate", speaker: "Hon. Health Minister", date: "2023-07-16", duration: "60 min", content: "Comprehensive discussion on healthcare reforms and new bill provisions." },
-        ];
+        // Fetch kramank
+        const kramankRes = await fetch(`${API_BASE}/kramank`);
+        const kramank = await kramankRes.json();
 
-        // Simulate API delay
-        setTimeout(() => {
-          setSessionsData(mockSessions);
-          setKramamkData(mockKramamk);
-          setDebatesData(mockDebates);
-          setLoading(false);
-        }, 1000);
+        // Fetch debates
+        const debatesRes = await fetch(`${API_BASE}/debates`);
+        const debates = await debatesRes.json();
 
+        setSessionsData(sessions);
+        setKramamkData(kramank);
+        setDebatesData(debates);
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({

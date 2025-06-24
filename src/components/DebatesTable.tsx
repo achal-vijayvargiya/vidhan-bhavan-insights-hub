@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Table,
@@ -13,15 +12,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Eye } from 'lucide-react';
 import DebateEditModal from './DebateEditModal';
 
+// Updated Debate interface to match API
 interface Debate {
   id: number;
-  session_id: number;
-  kramamk_id: number;
-  debate_title: string;
-  speaker: string;
+  kramank_id: number;
+  topic: string;
+  members: string[] | string;
   date: string;
-  duration: string;
-  content: string;
+  text: string;
+  status?: string;
+  user?: string;
+  last_update?: string;
+  [key: string]: any;
 }
 
 interface DebatesTableProps {
@@ -61,27 +63,29 @@ const DebatesTable: React.FC<DebatesTableProps> = ({ data, loading, onUpdate }) 
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
-              <TableHead className="font-semibold">Debate Title</TableHead>
-              <TableHead className="font-semibold">Speaker</TableHead>
+              <TableHead className="font-semibold">Topic</TableHead>
+              <TableHead className="font-semibold">Members</TableHead>
               <TableHead className="font-semibold">Date</TableHead>
-              <TableHead className="font-semibold">Duration</TableHead>
+              <TableHead className="font-semibold">Kramank ID</TableHead>
+              <TableHead className="font-semibold">Status</TableHead>
               <TableHead className="font-semibold">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                   No debates found
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((debate) => (
+              data.map((debate: Debate) => (
                 <TableRow key={debate.id} className="hover:bg-gray-50 transition-colors">
-                  <TableCell className="font-medium">{debate.debate_title}</TableCell>
-                  <TableCell>{debate.speaker}</TableCell>
-                  <TableCell>{new Date(debate.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{debate.duration}</TableCell>
+                  <TableCell className="font-medium">{debate.topic}</TableCell>
+                  <TableCell>{Array.isArray(debate.members) ? debate.members.join(', ') : debate.members}</TableCell>
+                  <TableCell>{debate.date}</TableCell>
+                  <TableCell>{debate.kramank_id}</TableCell>
+                  <TableCell>{debate.status || ''}</TableCell>
                   <TableCell>
                     <Button
                       variant="outline"

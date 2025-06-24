@@ -1,11 +1,182 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Building, FileText, Calendar, MessageSquare } from 'lucide-react';
+import SessionsTable from '@/components/SessionsTable';
+import KramamkTable from '@/components/KramamkTable';
+import DebatesTable from '@/components/DebatesTable';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
+  const [sessionsData, setSessionsData] = useState([]);
+  const [kramamkData, setKramamkData] = useState([]);
+  const [debatesData, setDebatesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  // Mock data for development - replace with actual FastAPI calls
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Mock sessions data
+        const mockSessions = [
+          { id: 1, session_name: "Budget Session 2024", start_date: "2024-01-15", end_date: "2024-03-30", status: "Active" },
+          { id: 2, session_name: "Monsoon Session 2023", start_date: "2023-07-15", end_date: "2023-09-15", status: "Completed" },
+          { id: 3, session_name: "Winter Session 2023", start_date: "2023-11-15", end_date: "2023-12-20", status: "Completed" },
+        ];
+
+        // Mock kramamk data
+        const mockKramamk = [
+          { id: 1, session_id: 1, kramamk_number: "K001", title: "Budget Discussion", date: "2024-01-16", type: "Discussion" },
+          { id: 2, session_id: 1, kramamk_number: "K002", title: "Question Hour", date: "2024-01-17", type: "Question" },
+          { id: 3, session_id: 2, kramamk_number: "K003", title: "Bill Presentation", date: "2023-07-16", type: "Bill" },
+        ];
+
+        // Mock debates data
+        const mockDebates = [
+          { id: 1, session_id: 1, kramamk_id: 1, debate_title: "Budget Allocation Discussion", speaker: "Hon. Minister", date: "2024-01-16", duration: "45 min", content: "Discussion on budget allocation for infrastructure development." },
+          { id: 2, session_id: 1, kramamk_id: 2, debate_title: "Education Policy Query", speaker: "Hon. Member XYZ", date: "2024-01-17", duration: "20 min", content: "Questions regarding new education policy implementation." },
+          { id: 3, session_id: 2, kramamk_id: 3, debate_title: "Healthcare Bill Debate", speaker: "Hon. Health Minister", date: "2023-07-16", duration: "60 min", content: "Comprehensive discussion on healthcare reforms and new bill provisions." },
+        ];
+
+        // Simulate API delay
+        setTimeout(() => {
+          setSessionsData(mockSessions);
+          setKramamkData(mockKramamk);
+          setDebatesData(mockDebates);
+          setLoading(false);
+        }, 1000);
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load data. Please try again.",
+          variant: "destructive",
+        });
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [toast]);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-3">
+              <Building className="h-8 w-8 text-blue-600" />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Vidhan Bhavan</h1>
+                <p className="text-sm text-gray-600">Document Management System</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-600">
+                Last updated: {new Date().toLocaleDateString()}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
+              <Calendar className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{sessionsData.length}</div>
+              <p className="text-xs text-muted-foreground">Active and completed</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Kramamk Records</CardTitle>
+              <FileText className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{kramamkData.length}</div>
+              <p className="text-xs text-muted-foreground">Total proceedings</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Debates</CardTitle>
+              <MessageSquare className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">{debatesData.length}</div>
+              <p className="text-xs text-muted-foreground">Recorded discussions</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Data Tables */}
+        <Card className="bg-white shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl text-gray-900">Vidhan Bhavan Records</CardTitle>
+            <CardDescription>
+              Manage sessions, kramamk data, and debates from the legislative assembly
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="sessions" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsTrigger value="sessions" className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>Sessions</span>
+                </TabsTrigger>
+                <TabsTrigger value="kramamk" className="flex items-center space-x-2">
+                  <FileText className="h-4 w-4" />
+                  <span>Kramamk</span>
+                </TabsTrigger>
+                <TabsTrigger value="debates" className="flex items-center space-x-2">
+                  <MessageSquare className="h-4 w-4" />
+                  <span>Debates</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="sessions">
+                <SessionsTable data={sessionsData} loading={loading} />
+              </TabsContent>
+
+              <TabsContent value="kramamk">
+                <KramamkTable data={kramamkData} loading={loading} />
+              </TabsContent>
+
+              <TabsContent value="debates">
+                <DebatesTable 
+                  data={debatesData} 
+                  loading={loading}
+                  onUpdate={(updatedDebate) => {
+                    setDebatesData(prev => 
+                      prev.map(debate => 
+                        debate.id === updatedDebate.id ? updatedDebate : debate
+                      )
+                    );
+                    toast({
+                      title: "Success",
+                      description: "Debate updated successfully",
+                    });
+                  }}
+                />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

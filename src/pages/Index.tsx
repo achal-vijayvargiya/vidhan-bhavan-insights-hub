@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building, Calendar, MessageSquare } from 'lucide-react';
 import SessionsTable from '@/components/SessionsTable';
-import KramamkTable from '@/components/KramamkTable';
+import MembersTable from '@/components/MembersTable';
+import KarywalisTable from '@/components/KarywalisTable';
 import DebatesTable from '@/components/DebatesTable';
 import { useToast } from '@/hooks/use-toast';
 
@@ -171,11 +171,11 @@ const Index = () => {
               </TabsList>
 
               <TabsContent value="members">
-                <KramamkTable data={filteredKramamkData} loading={loading} />
+                <MembersTable data={filteredKramamkData} loading={loading} />
               </TabsContent>
 
               <TabsContent value="karywalis">
-                <KramamkTable data={filteredKramamkData} loading={loading} />
+                <KarywalisTable data={filteredKramamkData} loading={loading} />
               </TabsContent>
 
               <TabsContent value="debates">

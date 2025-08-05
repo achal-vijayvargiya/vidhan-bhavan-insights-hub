@@ -23,6 +23,10 @@ interface Debate {
   status?: string;
   user?: string;
   last_update?: string;
+  image_name?: string;
+  question_number?: number[] | number;
+  topics?: string[] | string;
+  answers_by?: string[] | string;
   [key: string]: any;
 }
 
@@ -81,6 +85,24 @@ const DebateEditModal: React.FC<DebateEditModalProps> = ({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
+            <Label htmlFor="id">Debate ID</Label>
+            <Input
+              id="id"
+              value={formData.id}
+              readOnly
+              className="bg-gray-100 cursor-not-allowed"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="image_name">Image Name</Label>
+            <Input
+              id="image_name"
+              value={formData.image_name || ''}
+              readOnly
+              className="bg-gray-100 cursor-not-allowed"
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="topic">Topic</Label>
             <Input
               id="topic"
@@ -130,12 +152,30 @@ const DebateEditModal: React.FC<DebateEditModalProps> = ({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="question_number">Question Numbers (comma separated)</Label>
             <Input
-              id="status"
-              value={formData.status || ''}
-              onChange={(e) => handleInputChange('status', e.target.value)}
-              placeholder="Status"
+              id="question_number"
+              value={Array.isArray(formData.question_number) ? formData.question_number.join(', ') : (formData.question_number || '')}
+              onChange={(e) => handleInputChange('question_number', e.target.value)}
+              placeholder="Enter question numbers, separated by commas"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="topics">Topics (comma separated)</Label>
+            <Input
+              id="topics"
+              value={Array.isArray(formData.topics) ? formData.topics.join(', ') : (formData.topics || '')}
+              onChange={(e) => handleInputChange('topics', e.target.value)}
+              placeholder="Enter topics, separated by commas"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="answers_by">Answers By (comma separated)</Label>
+            <Input
+              id="answers_by"
+              value={Array.isArray(formData.answers_by) ? formData.answers_by.join(', ') : (formData.answers_by || '')}
+              onChange={(e) => handleInputChange('answers_by', e.target.value)}
+              placeholder="Enter answers by, separated by commas"
             />
           </div>
         </div>

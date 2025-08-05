@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Table,
@@ -11,14 +10,26 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Member {
-  id: number;
+  id: string;  // Changed from number to string to match API
   session_id: string;
-  number: string;
-  date: string;
-  chairman: string;
+  name: string;
+  house?: string;
+  party?: string;
+  ministry?: string;
+  role?: string;
+  gender?: string;
+  contact?: string;
+  address?: string;
+  image_url?: string;
+  aka?: string;
   status?: string;
   user?: string;
   last_update?: string;
+  position?: string;  // Alias for role
+  department?: string;  // Alias for ministry
+  number?: string;  // Alias for member_id
+  date?: string;
+  chairman?: string;  // Alias for name
   [key: string]: any;
 }
 
@@ -45,10 +56,10 @@ const MembersTable: React.FC<MembersTableProps> = ({ data, loading }) => {
           <TableRow className="bg-gray-50">
             <TableHead className="font-semibold">Member ID</TableHead>
             <TableHead className="font-semibold">Name</TableHead>
-            <TableHead className="font-semibold">Constituency</TableHead>
+            <TableHead className="font-semibold">Role</TableHead>
             <TableHead className="font-semibold">Party</TableHead>
+            <TableHead className="font-semibold">House</TableHead>
             <TableHead className="font-semibold">Session ID</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -61,12 +72,12 @@ const MembersTable: React.FC<MembersTableProps> = ({ data, loading }) => {
           ) : (
             data.map((member) => (
               <TableRow key={member.id} className="hover:bg-gray-50 transition-colors">
-                <TableCell className="font-medium font-mono">{member.number}</TableCell>
-                <TableCell>{member.chairman}</TableCell>
-                <TableCell>{member.constituency || 'N/A'}</TableCell>
-                <TableCell>{member.party || 'N/A'}</TableCell>
+                <TableCell className="font-medium font-mono">{member.id}</TableCell>
+                <TableCell>{member.name}</TableCell>
+                <TableCell>{member.role || member.position || ''}</TableCell>
+                <TableCell>{member.party || ''}</TableCell>
+                <TableCell>{member.house || ''}</TableCell>
                 <TableCell>{member.session_id}</TableCell>
-                <TableCell>{member.status || ''}</TableCell>
               </TableRow>
             ))
           )}

@@ -2,7 +2,7 @@
 // FastAPI integration utilities
 // Replace these URLs with your actual FastAPI backend endpoints
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 export interface Session {
   id: number;
@@ -32,8 +32,91 @@ export interface Debate {
   content: string;
 }
 
+export interface User {
+  user_id: string;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  is_active: boolean;
+  is_verified: boolean;
+  phone_number?: string;
+  department?: string;
+  position?: string;
+  profile_image_url?: string;
+  last_login?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  user_id: string;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  is_active: boolean;
+  message: string;
+}
+
 // API functions for FastAPI integration
 export const apiService = {
+  // Authentication
+  async login(credentials: LoginRequest): Promise<LoginResponse> {
+    const response = await fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Login failed');
+    }
+    
+    return response.json();
+  },
+
+  async getCurrentUser(): Promise<User> {
+    const username = localStorage.getItem('authUser');
+    if (!username) throw new Error('No authentication token');
+    
+    const response = await fetch(`${API_BASE_URL}/user/${username}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch current user');
+    const userData = await response.json();
+    
+    // Convert to User format
+    return {
+      user_id: userData.user_id,
+      username: userData.username,
+      email: userData.email,
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      role: userData.role,
+      is_active: userData.is_active,
+      is_verified: true, // Default to true for now
+      phone_number: userData.phone_number,
+      department: userData.department,
+      position: userData.position,
+      profile_image_url: undefined,
+      last_login: undefined,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+  },
+
   // Sessions
   async getSessions(): Promise<Session[]> {
     const response = await fetch(`${API_BASE_URL}/sessions`);

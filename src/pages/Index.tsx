@@ -2,47 +2,59 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building, Calendar, MessageSquare } from 'lucide-react';
-import SessionsTable from '@/components/SessionsTable';
+import { Button } from "@/components/ui/button";
+import { Building, Calendar, MessageSquare, LogOut, User } from 'lucide-react';
 import MembersTable from '@/components/MembersTable';
 import KarywalisTable from '@/components/KarywalisTable';
 import DebatesTable from '@/components/DebatesTable';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE = "http://localhost:8000";
 
 const Index = () => {
   const [sessionsData, setSessionsData] = useState([]);
-  const [kramamkData, setKramamkData] = useState([]);
-  const [debatesData, setDebatesData] = useState([]);
-  const [filteredKramamkData, setFilteredKramamkData] = useState([]);
-  const [filteredDebatesData, setFilteredDebatesData] = useState([]);
+  const [debatesCount, setDebatesCount] = useState(0);
   const [selectedSession, setSelectedSession] = useState('');
+  const [membersData, setMembersData] = useState([]);
+  const [debatesData, setDebatesData] = useState([]);
+  const [karyawaliData, setKaryawaliData] = useState([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+      variant: "default",
+    });
+    navigate('/login');
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        // Fetch sessions
-        const sessionsRes = await fetch(`${API_BASE}/sessions`);
-        const sessions = await sessionsRes.json();
-
-        // Fetch kramank
-        const kramankRes = await fetch(`${API_BASE}/kramank`);
-        const kramank = await kramankRes.json();
-
-        // Fetch debates
-        const debatesRes = await fetch(`${API_BASE}/debates`);
-        const debates = await debatesRes.json();
-
+        const sessionsRes = await fetch(`${API_BASE}/api/sessions`);
+        const sessionsData = await sessionsRes.json();
+        const sessions = sessionsData.success ? sessionsData.data.sessions : [];
+        
+        let debatesCount = 0;
+        try {
+          const debatesRes = await fetch(`${API_BASE}/api/debates`);
+          const debatesData = await debatesRes.json();
+          debatesCount = debatesData.success ? debatesData.data.summary.total_debates : 0;
+          console.log("Debate count: " + debatesCount);
+        } catch (e) {
+          debatesCount = 0;
+        }
+        
         setSessionsData(sessions);
-        setKramamkData(kramank);
-        setDebatesData(debates);
-        setFilteredKramamkData(kramank);
-        setFilteredDebatesData(debates);
+        setDebatesCount(debatesCount);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -54,26 +66,62 @@ const Index = () => {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [toast]);
 
-  const handleSessionChange = (sessionId: string) => {
+  const handleSessionChange = async (sessionId: string) => {
     setSelectedSession(sessionId);
-    
-    if (sessionId === 'all' || sessionId === '') {
-      setFilteredKramamkData(kramamkData);
-      setFilteredDebatesData(debatesData);
-    } else {
-      // Filter kramank data by session
-      const filteredKramank = kramamkData.filter(item => item.session_id === sessionId);
-      setFilteredKramamkData(filteredKramank);
+    setLoading(true);
+    try {
+      if (sessionId === 'all' || sessionId === '') {
+        setMembersData([]);
+        setDebatesData([]);
+        setKaryawaliData([]);
+        setLoading(false);
+        return;
+      }
       
-      // Filter debates data by session (assuming debates have kramank_id that can be matched)
-      const kramankIds = filteredKramank.map(item => item.id);
-      const filteredDebates = debatesData.filter(debate => kramankIds.includes(debate.kramank_id));
-      setFilteredDebatesData(filteredDebates);
+      // Call APIs with session_id as path parameter
+      const [membersRes, kramanksRes] = await Promise.all([
+        fetch(`${API_BASE}/api/sessions/${sessionId}/members`),
+        fetch(`${API_BASE}/api/sessions/${sessionId}/kramanks`)
+      ]);
+      
+      const [membersData, kramanksData] = await Promise.all([
+        membersRes.json(),
+        kramanksRes.json()
+      ]);
+      
+      // Extract data from API responses
+      const members = membersData.success ? membersData.data.members : [];
+      const kramanks = kramanksData.success ? kramanksData.data.kramanks : [];
+      
+      // Get debates for all kramanks in this session
+      let allDebates = [];
+      for (const kramank of kramanks) {
+        try {
+          const debatesRes = await fetch(`${API_BASE}/api/kramanks/${kramank.kramank_id}/debates`);
+          const debatesData = await debatesRes.json();
+          if (debatesData.success) {
+            allDebates = [...allDebates, ...debatesData.data.debates];
+          }
+        } catch (error) {
+          console.error(`Error fetching debates for kramank ${kramank.kramank_id}:`, error);
+        }
+      }
+      
+      setMembersData(members);
+      setDebatesData(allDebates);
+      setKaryawaliData(kramanks); // Using kramanks as karyawali data
+    } catch (error) {
+      console.error('Error fetching session data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load session data. Please try again.",
+        variant: "destructive",
+      });
     }
+    setLoading(false);
   };
 
   return (
@@ -90,9 +138,22 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <User className="h-4 w-4" />
+                <span>Welcome, {user?.username}</span>
+              </div>
               <div className="text-sm text-gray-600">
                 Last updated: {new Date().toLocaleDateString()}
               </div>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-1"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -119,7 +180,7 @@ const Index = () => {
               <MessageSquare className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{filteredDebatesData.length}</div>
+              <div className="text-2xl font-bold text-purple-600">{debatesCount}</div>
               <p className="text-xs text-muted-foreground">Recorded discussions</p>
             </CardContent>
           </Card>
@@ -145,8 +206,8 @@ const Index = () => {
                 <SelectContent className="bg-white border shadow-lg z-50">
                   <SelectItem value="all">All Sessions</SelectItem>
                   {sessionsData.map((session: any) => (
-                    <SelectItem key={session.id} value={session.id}>
-                      {session.id} - {session.year} ({session.type})
+                    <SelectItem key={session.session_id} value={session.session_id}>
+                      {session.session_id} - {session.year} ({session.type})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -171,25 +232,19 @@ const Index = () => {
               </TabsList>
 
               <TabsContent value="members">
-                <MembersTable data={filteredKramamkData} loading={loading} />
+                <MembersTable data={membersData} loading={loading} />
               </TabsContent>
 
               <TabsContent value="karywalis">
-                <KarywalisTable data={filteredKramamkData} loading={loading} />
+                <KarywalisTable data={karyawaliData} loading={loading} />
               </TabsContent>
 
               <TabsContent value="debates">
                 <DebatesTable 
-                  data={filteredDebatesData} 
+                  data={debatesData} 
                   loading={loading}
                   onUpdate={(updatedDebate) => {
                     setDebatesData(prev => 
-                      prev.map(debate => 
-                        debate.id === updatedDebate.id ? updatedDebate : debate
-                      )
-                    );
-                    // Also update filtered data
-                    setFilteredDebatesData(prev => 
                       prev.map(debate => 
                         debate.id === updatedDebate.id ? updatedDebate : debate
                       )

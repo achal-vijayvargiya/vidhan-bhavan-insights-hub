@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Table,
@@ -45,17 +44,14 @@ const KarywalisTable: React.FC<KarywalisTableProps> = ({ data, loading }) => {
         <TableHeader>
           <TableRow className="bg-gray-50">
             <TableHead className="font-semibold">Karywali Number</TableHead>
-            <TableHead className="font-semibold">Date</TableHead>
-            <TableHead className="font-semibold">Chairman</TableHead>
-            <TableHead className="font-semibold">Type</TableHead>
+            <TableHead className="font-semibold">Text</TableHead>
             <TableHead className="font-semibold">Session ID</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+              <TableCell colSpan={3} className="text-center py-8 text-gray-500">
                 No karywali records found
               </TableCell>
             </TableRow>
@@ -63,11 +59,8 @@ const KarywalisTable: React.FC<KarywalisTableProps> = ({ data, loading }) => {
             data.map((karywali) => (
               <TableRow key={karywali.id} className="hover:bg-gray-50 transition-colors">
                 <TableCell className="font-medium font-mono">{karywali.number}</TableCell>
-                <TableCell>{karywali.date}</TableCell>
-                <TableCell>{karywali.chairman}</TableCell>
-                <TableCell>{karywali.type || 'Regular'}</TableCell>
+                <TableCell>{karywali.text}</TableCell>
                 <TableCell>{karywali.session_id}</TableCell>
-                <TableCell>{karywali.status || ''}</TableCell>
               </TableRow>
             ))
           )}

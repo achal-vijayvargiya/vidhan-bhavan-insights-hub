@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  vidhan-bhavan-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vidhan-bhavan-frontend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+      # Optional HTTPS port - uncomment if needed
+      # - "${FRONTEND_HTTPS_PORT:-8443}:443"
+    environment:
+      # Set the backend API URL - configured for server IP 103.112.121.174
+      - VITE_API_URL=${VITE_API_URL:-http://103.112.121.174:8000/api}
+    volumes:
+      # Optional: Mount custom nginx config if you need to override
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+    networks:
+      - vidhan-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  vidhan-network:
+    driver: bridge
+
+# Optional: Add persistent volume for logs
+volumes:
+  nginx_logs:
+    driver: local

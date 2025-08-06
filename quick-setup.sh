@@ -72,7 +72,7 @@ echo "========================="
 cat .env
 echo ""
 
-# Step 4: Check Docker installation
+# Step 4: Check Docker installation and permissions
 echo "🐳 Checking Docker installation..."
 if ! command -v docker &> /dev/null; then
     print_error "Docker is not installed!"
@@ -90,6 +90,30 @@ fi
 
 print_status "Docker and Docker Compose are installed"
 
+# Check Docker permissions
+echo "🔐 Checking Docker permissions..."
+if ! docker ps &>/dev/null; then
+    print_warning "Docker permission issue detected!"
+    echo ""
+    echo "📋 Quick fixes:"
+    echo "1. Run with sudo: sudo ./quick-setup.sh"
+    echo "2. Fix permissions: chmod +x fix-docker-permissions.sh && ./fix-docker-permissions.sh"
+    echo "3. Add user to docker group: sudo usermod -aG docker \$USER && newgrp docker"
+    echo ""
+    read -p "Do you want to continue with sudo? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_warning "Continuing with sudo..."
+        USE_SUDO="sudo"
+    else
+        print_error "Please fix Docker permissions first and try again"
+        exit 1
+    fi
+else
+    print_status "Docker permissions are working correctly"
+    USE_SUDO=""
+fi
+
 # Step 5: Deploy
 echo ""
 echo "🚀 Starting deployment..."
@@ -100,7 +124,12 @@ read
 chmod +x deploy.sh check-ports.sh
 
 # Run deployment
-./deploy.sh
+if [ ! -z "$USE_SUDO" ]; then
+    print_warning "Running deployment with sudo..."
+    sudo ./deploy.sh
+else
+    ./deploy.sh
+fi
 
 # Final information
 FRONTEND_PORT=$(grep "^FRONTEND_PORT=" .env | cut -d'=' -f2)

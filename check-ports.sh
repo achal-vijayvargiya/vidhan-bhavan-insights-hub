@@ -41,10 +41,10 @@ echo ""
 
 # Safe alternative ports
 echo "Safe alternative ports (no root required):"
-check_port 8080
+check_port 3030
 check_port 3000
 check_port 9000
-check_port 8081
+check_port 8080
 check_port 8443
 check_port 5000
 echo ""
@@ -71,14 +71,14 @@ echo ""
 echo "💡 Recommendations:"
 echo ""
 
-# Check if port 8080 is available (our default)
-if check_port 8080 >/dev/null 2>&1; then
-    echo -e "${GREEN}✅ Use port 8080 (default) - FRONTEND_PORT=8080${NC}"
+# Check if port 3030 is available (our default)
+if check_port 3030 >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ Use port 3030 (default) - FRONTEND_PORT=3030${NC}"
 else
-    echo -e "${YELLOW}⚠️  Port 8080 is busy, try these alternatives:${NC}"
+    echo -e "${YELLOW}⚠️  Port 3030 is busy, try these alternatives:${NC}"
     
     # Find first available port from our list
-    for port in 3000 9000 8081 5000 8443; do
+    for port in 3000 9000 8080 5000 8443; do
         if check_port $port >/dev/null 2>&1; then
             echo -e "${GREEN}✅ Use port $port - FRONTEND_PORT=$port${NC}"
             break

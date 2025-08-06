@@ -99,7 +99,7 @@ echo "⏳ Waiting for application to be ready..."
 sleep 10
 
 # Get the frontend port from .env file or use default
-FRONTEND_PORT=$(grep "^FRONTEND_PORT=" .env 2>/dev/null | cut -d'=' -f2 || echo "8080")
+FRONTEND_PORT=$(grep "^FRONTEND_PORT=" .env 2>/dev/null | cut -d'=' -f2 || echo "3030")
 
 # Check if the application is healthy
 echo "🔍 Checking application health on port $FRONTEND_PORT..."

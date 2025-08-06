@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: vidhan-bhavan-frontend
     ports:
-      - "${FRONTEND_PORT:-8080}:80"
+      - "${FRONTEND_PORT:-3030}:80"
       # Optional HTTPS port - uncomment if needed
       # - "${FRONTEND_HTTPS_PORT:-8443}:443"
     environment:

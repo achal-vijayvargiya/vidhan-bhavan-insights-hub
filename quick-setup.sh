@@ -38,7 +38,7 @@ cat > .env << EOF
 VITE_API_URL=http://103.112.121.174:8000/api
 
 # Frontend Port Configuration
-FRONTEND_PORT=8080
+FRONTEND_PORT=3030
 
 # Optional HTTPS port (uncomment if you enable HTTPS)
 # FRONTEND_HTTPS_PORT=8443
@@ -46,15 +46,15 @@ EOF
 
 print_status ".env file created with server IP 103.112.121.174"
 
-# Step 2: Check if port 8080 is available
+# Step 2: Check if port 3030 is available
 echo ""
 echo "🔍 Checking port availability..."
-if netstat -tuln 2>/dev/null | grep -q ":8080 "; then
-    print_warning "Port 8080 is currently in use!"
+if netstat -tuln 2>/dev/null | grep -q ":3030 "; then
+    print_warning "Port 3030 is currently in use!"
     echo "Checking alternative ports..."
     
     # Try alternative ports
-    for port in 3000 9000 8081 5000; do
+    for port in 3000 9000 8080 5000; do
         if ! netstat -tuln 2>/dev/null | grep -q ":$port "; then
             print_status "Using alternative port $port"
             sed -i "s/FRONTEND_PORT=8080/FRONTEND_PORT=$port/" .env

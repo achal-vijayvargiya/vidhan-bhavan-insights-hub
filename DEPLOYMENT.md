@@ -30,8 +30,8 @@ This guide explains how to deploy the React frontend application to a Linux serv
    ```
 
 4. **Access your application**:
-   - Open your browser and navigate to `http://103.112.121.174:8080`
-   - The application will be accessible on port 8080 by default (configurable)
+   - Open your browser and navigate to `http://103.112.121.174:3030`
+   - The application will be accessible on port 3030 by default (configurable)
 
 ## Manual Deployment Steps
 
@@ -45,7 +45,7 @@ cp env.example .env
 Edit the `.env` file and set your backend API URL and frontend port:
 ```bash
 VITE_API_URL=http://103.112.121.174:8000/api
-FRONTEND_PORT=8080
+FRONTEND_PORT=3030
 ```
 
 ### Step 2: Build and Deploy
@@ -68,7 +68,7 @@ docker-compose ps
 
 Check application health:
 ```bash
-curl http://localhost:8080/health
+curl http://localhost:3030/health
 ```
 
 View logs:
@@ -89,13 +89,14 @@ For different deployment scenarios, update the `VITE_API_URL` in your `.env` fil
 
 ### Port Configuration
 
-By default, the application runs on port 8080 to avoid conflicts. You can change this by setting `FRONTEND_PORT` in your `.env` file:
+By default, the application runs on port 3030 to avoid conflicts. You can change this by setting `FRONTEND_PORT` in your `.env` file:
 
 ```bash
 # Safe options (no root privileges required)
-FRONTEND_PORT=8080  # Default
+FRONTEND_PORT=3030  # Default
 FRONTEND_PORT=3000  # React development port
 FRONTEND_PORT=9000  # Alternative high port
+FRONTEND_PORT=8080  # Web proxy port
 
 # Standard ports (may require root/sudo)
 FRONTEND_PORT=80    # Standard HTTP
@@ -110,9 +111,9 @@ FRONTEND_PORT=443   # Standard HTTPS
 **Check for Port Conflicts:**
 ```bash
 # Check if a port is in use
-sudo netstat -tlnp | grep :8080
+sudo netstat -tlnp | grep :3030
 # or
-sudo lsof -i :8080
+sudo lsof -i :3030
 
 # Find available ports
 netstat -tuln | grep LISTEN
@@ -138,15 +139,15 @@ docker-compose build --no-cache
 
 ### Application Not Accessible
 ```bash
-# Check if port is open (replace 8080 with your port)
-sudo netstat -tlnp | grep :8080
+# Check if port is open (replace 3030 with your port)
+sudo netstat -tlnp | grep :3030
 
 # Check firewall settings
 sudo ufw status
-sudo ufw allow 8080
+sudo ufw allow 3030
 
 # Check if another service is using the port
-sudo lsof -i :8080
+sudo lsof -i :3030
 ```
 
 ### Backend Connection Issues
@@ -159,8 +160,8 @@ sudo lsof -i :8080
 # View container status
 docker inspect vidhan-bhavan-frontend --format='{{.State.Health.Status}}'
 
-# Test health endpoint (replace 8080 with your port)
-curl http://localhost:8080/health
+# Test health endpoint (replace 3030 with your port)
+curl http://localhost:3030/health
 ```
 
 ## Maintenance

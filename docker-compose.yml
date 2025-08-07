@@ -23,8 +23,6 @@ services:
     restart: unless-stopped
     networks:
       - shared-network
-    depends_on:
-      - vidhan-bhavan-backend
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s

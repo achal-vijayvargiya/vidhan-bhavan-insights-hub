@@ -1,53 +1,36 @@
-# Build stage
+## Build stage: compile the React app
 FROM node:18-alpine as build
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including dev dependencies for build)
+# Install dependencies
 RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY . .
 
+# Allow build-time API URL override
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Build the application
 RUN npm run build
 
-# Clean up dev dependencies to reduce image size
-RUN npm prune --production
+## Runtime stage: copy build artifacts to a shared volume mounted at /usr/share/nginx/html
+FROM alpine:3.19
 
-# Production stage
-FROM nginx:alpine
+WORKDIR /app
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+RUN apk add --no-cache bash coreutils
 
-# Copy built application from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copy the build output from the build stage
+COPY --from=build /app/dist /build
 
-# Create a non-root user for security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+# Declare the shared volume path (will be provided by docker-compose)
+VOLUME ["/usr/share/nginx/html"]
 
-# Change ownership of nginx directories
-RUN chown -R nextjs:nodejs /usr/share/nginx/html
-RUN chown -R nextjs:nodejs /var/cache/nginx
-RUN chown -R nextjs:nodejs /var/log/nginx
-RUN chown -R nextjs:nodejs /etc/nginx/conf.d
-RUN chown -R nextjs:nodejs /etc/nginx/nginx.conf
-
-# Create nginx pid directory and set permissions
-RUN mkdir -p /var/run/nginx
-RUN chown -R nextjs:nodejs /var/run/nginx
-
-# Switch to non-root user
-USER nextjs
-
-# Expose port 80
-EXPOSE 80
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# On container start, copy the built files into the mounted volume and keep the container running
+CMD ["sh", "-c", "cp -r /build/* /usr/share/nginx/html/ && echo 'Frontend build copied to shared volume' && tail -f /dev/null"]

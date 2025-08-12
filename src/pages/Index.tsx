@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = (import.meta as any).env?.VITE_API_URL?.replace(/\/$/, '') || '/api';
 
 const Index = () => {
   const [sessionsData, setSessionsData] = useState([]);
@@ -39,13 +39,13 @@ const Index = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const sessionsRes = await fetch(`${API_BASE}/api/sessions`);
+        const sessionsRes = await fetch(`${API_BASE}/sessions`);
         const sessionsData = await sessionsRes.json();
         const sessions = sessionsData.success ? sessionsData.data.sessions : [];
         
         let debatesCount = 0;
         try {
-          const debatesRes = await fetch(`${API_BASE}/api/debates`);
+          const debatesRes = await fetch(`${API_BASE}/debates`);
           const debatesData = await debatesRes.json();
           debatesCount = debatesData.success ? debatesData.data.summary.total_debates : 0;
           console.log("Debate count: " + debatesCount);
@@ -83,8 +83,8 @@ const Index = () => {
       
       // Call APIs with session_id as path parameter
       const [membersRes, kramanksRes] = await Promise.all([
-        fetch(`${API_BASE}/api/sessions/${sessionId}/members`),
-        fetch(`${API_BASE}/api/sessions/${sessionId}/kramanks`)
+        fetch(`${API_BASE}/sessions/${sessionId}/members`),
+        fetch(`${API_BASE}/sessions/${sessionId}/kramanks`)
       ]);
       
       const [membersData, kramanksData] = await Promise.all([
@@ -100,7 +100,7 @@ const Index = () => {
       let allDebates = [];
       for (const kramank of kramanks) {
         try {
-          const debatesRes = await fetch(`${API_BASE}/api/kramanks/${kramank.kramank_id}/debates`);
+          const debatesRes = await fetch(`${API_BASE}/kramanks/${kramank.kramank_id}/debates`);
           const debatesData = await debatesRes.json();
           if (debatesData.success) {
             allDebates = [...allDebates, ...debatesData.data.debates];

@@ -2,7 +2,7 @@
 // FastAPI integration utilities
 // Replace these URLs with your actual FastAPI backend endpoints
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim()) || '/api';
 
 export interface Session {
   id: number;

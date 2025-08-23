@@ -87,15 +87,20 @@ const DebatesTable: React.FC<DebatesTableProps> = ({ data, loading, onUpdate }) 
                   <TableCell>{debate.kramank_id}</TableCell>
                   <TableCell>{debate.status || ''}</TableCell>
                   <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewDebate(debate)}
-                      className="flex items-center space-x-1 hover:bg-blue-50 hover:border-blue-300"
+                    <a
+                      href={`/debates/${debate.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      <Eye className="h-4 w-4" />
-                      <span>View</span>
-                    </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center space-x-1 hover:bg-blue-50 hover:border-blue-300"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>View</span>
+                      </Button>
+                    </a>
                   </TableCell>
                 </TableRow>
               ))

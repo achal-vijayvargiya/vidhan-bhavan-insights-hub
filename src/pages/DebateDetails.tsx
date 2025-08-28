@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, Trash2, GitMerge } from 'lucide-react';
 import { Viewer, Worker } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 
@@ -30,6 +30,9 @@ interface Debate {
   lob_type?: string;
   lob?: string;
   sub_lob?: string;
+  vol?: string;  // Volume/Khand number
+  chairman?: string;  // Chairman name from kramank
+  sequence_number?: number;  // Sequence number for ordering
   [key: string]: any;
 }
 
@@ -38,6 +41,14 @@ const DebateDetails: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<Debate | null>(null);
+  const [showMergeModal, setShowMergeModal] = useState(false);
+  const [nextDebate, setNextDebate] = useState<{
+    id: string;
+    topic: string;
+    preview: string;
+    sequence_number: number;
+  } | null>(null);
+  const [selectedDebateId, setSelectedDebateId] = useState<string | null>(null);
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
   useEffect(() => {
@@ -92,10 +103,69 @@ const DebateDetails: React.FC = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!formData || !window.confirm('Are you sure you want to delete this debate?')) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/debates/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete debate');
+      
+      // Navigate back after successful deletion
+      navigate(-1);
+    } catch (error) {
+      console.error('Error deleting debate:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchNextDebate = async () => {
+    if (!id || !formData?.sequence_number) return;
+    try {
+      const response = await fetch(`/api/debates/next/${formData.sequence_number}`);
+      if (!response.ok) throw new Error('Failed to fetch next debate');
+      const data = await response.json();
+      setNextDebate(data.data.debate);
+    } catch (error) {
+      console.error('Error fetching next debate:', error);
+      setNextDebate(null);
+    }
+  };
+
+  const handleMerge = async () => {
+    if (!selectedDebateId || !id) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/debates/${id}/merge/${selectedDebateId}`, {
+        method: 'POST'
+      });
+      
+      if (!response.ok) throw new Error('Failed to merge debates');
+      
+      // Refresh debate data
+      const updatedDebate = await fetch(`/api/debates/${id}`);
+      if (updatedDebate.ok) {
+        const data = await updatedDebate.json();
+        setFormData(data);
+      }
+      
+      setShowMergeModal(false);
+      setSelectedDebateId(null);
+    } catch (error) {
+      console.error('Error merging debates:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!formData) return <div>Loading...</div>;
 
   return (
-    <div className="container mx-auto p-6 min-h-screen bg-white">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
@@ -109,14 +179,37 @@ const DebateDetails: React.FC = () => {
           </Button>
           <h1 className="text-xl font-bold">Debate Details</h1>
         </div>
-        <Button
-          onClick={handleUpdate}
-          disabled={isLoading}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-sm"
-        >
-          <Save className="h-3 w-3" />
-          {isLoading ? 'Saving...' : 'Save Changes'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => {
+              fetchNextDebate();
+              setShowMergeModal(true);
+            }}
+            disabled={isLoading}
+            variant="outline"
+            className="flex items-center gap-2 text-sm"
+          >
+            <GitMerge className="h-3 w-3" />
+            Merge with Next
+          </Button>
+          <Button
+            onClick={handleDelete}
+            disabled={isLoading}
+            variant="destructive"
+            className="flex items-center gap-2 text-sm"
+          >
+            <Trash2 className="h-3 w-3" />
+            {isLoading ? 'Deleting...' : 'Delete'}
+          </Button>
+          <Button
+            onClick={handleUpdate}
+            disabled={isLoading}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-sm"
+          >
+            <Save className="h-3 w-3" />
+            {isLoading ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
       </div>
 
       {/* Main Content - Two Column Layout */}
@@ -208,29 +301,60 @@ const DebateDetails: React.FC = () => {
                 className="text-sm"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="date" className="text-sm">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => handleInputChange('date', e.target.value)}
-                  className="text-sm"
-                />
+                          <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="date" className="text-sm">Date</Label>
+                  <Input
+                    id="date"
+                    value={formData.date || ''}
+                    onChange={(e) => handleInputChange('date', e.target.value)}
+                    placeholder="Enter date"
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="kramank_id" className="text-sm">Kramank ID</Label>
+                  <Input
+                    id="kramank_id"
+                    type="number"
+                    value={formData.kramank_id}
+                    onChange={(e) => handleInputChange('kramank_id', parseInt(e.target.value))}
+                    placeholder="Kramank ID"
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="sequence_number" className="text-sm">Sequence No.</Label>
+                  <Input
+                    id="sequence_number"
+                    type="number"
+                    value={formData.sequence_number || ''}
+                    readOnly
+                    className="text-sm bg-gray-50"
+                    placeholder="Sequence number"
+                  />
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="kramank_id" className="text-sm">Kramank ID</Label>
-                <Input
-                  id="kramank_id"
-                  type="number"
-                  value={formData.kramank_id}
-                  onChange={(e) => handleInputChange('kramank_id', parseInt(e.target.value))}
-                  placeholder="Kramank ID"
-                  className="text-sm"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="vol" className="text-sm">Volume/Khand</Label>
+                  <Input
+                    id="vol"
+                    value={formData.vol || ''}
+                    readOnly
+                    className="text-sm bg-gray-50"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="chairman" className="text-sm">Chairman</Label>
+                  <Input
+                    id="chairman"
+                    value={formData.chairman || ''}
+                    readOnly
+                    className="text-sm bg-gray-50"
+                  />
+                </div>
               </div>
-            </div>
             <div className="space-y-1.5">
               <Label htmlFor="question_number" className="text-sm">Question Numbers (comma separated)</Label>
               <Input
@@ -276,6 +400,52 @@ const DebateDetails: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Merge Modal */}
+      {showMergeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
+            <h2 className="text-lg font-semibold mb-4">Merge with Next Debate</h2>
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+              {!nextDebate ? (
+                <p className="text-gray-500">No next debate found to merge with.</p>
+              ) : (
+                <div 
+                  className={`p-4 border rounded transition-colors ${
+                    selectedDebateId === nextDebate.id ? 'border-blue-500 bg-blue-50' : 'hover:border-gray-400'
+                  }`}
+                  onClick={() => setSelectedDebateId(nextDebate.id)}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium">{nextDebate.topic}</h3>
+                    <span className="text-sm text-gray-500">Sequence No. {nextDebate.sequence_number}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">{nextDebate.preview}</p>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowMergeModal(false);
+                  setSelectedDebateId(null);
+                }}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleMerge}
+                disabled={!nextDebate || !selectedDebateId || isLoading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isLoading ? 'Merging...' : 'Merge with Next'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

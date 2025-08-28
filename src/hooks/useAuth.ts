@@ -46,33 +46,45 @@ export const useAuth = (): UseAuthReturn => {
       
       const response = await apiService.login({ username, password });
       
-      // Store authentication data
-      localStorage.setItem('authToken', response.user_id); // Using user_id as token for now
-      localStorage.setItem('authUser', response.username);
-      localStorage.setItem('isAuthenticated', 'true');
+      // Backend returns { user: {...}, message: "Login successful" }
+      // No success field, so we check if user exists
+      if (!response.user) {
+        throw new Error(response.message || 'Login failed');
+      }
+
+      // Get the user data from the response
+      const userData = response.user;
       
-      setIsAuthenticated(true);
+      // Store authentication data
+      localStorage.setItem('authToken', userData.user_id);
+      localStorage.setItem('authUser', userData.username);
+      localStorage.setItem('isAuthenticated', 'true');
       
       // Convert response to User format
       const user: User = {
-        user_id: response.user_id,
-        username: response.username,
-        email: response.email,
-        first_name: response.first_name,
-        last_name: response.last_name,
-        role: response.role,
-        is_active: response.is_active,
-        is_verified: true, // Default to true for now
+        user_id: userData.user_id.toString(),
+        username: userData.username,
+        email: userData.email || '',
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        role: userData.role,
+        is_active: true,
+        is_verified: true,
         phone_number: undefined,
         department: undefined,
         position: undefined,
         profile_image_url: undefined,
         last_login: undefined,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_at: userData.created_at || new Date().toISOString(),
+        updated_at: userData.updated_at || new Date().toISOString()
       };
       
+      // Set user first, then authentication status
       setUser(user);
+      setIsAuthenticated(true);
+      
+      console.log('Login successful, user:', user);
+      console.log('isAuthenticated set to true');
       
       return true;
     } catch (error) {

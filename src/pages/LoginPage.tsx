@@ -19,7 +19,9 @@ const LoginPage = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
+    console.log('LoginPage useEffect - isAuthenticated:', isAuthenticated);
     if (isAuthenticated) {
+      console.log('Redirecting to home page...');
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
@@ -56,14 +58,18 @@ const LoginPage = () => {
       const success = await login(username, password);
 
       if (success) {
+        console.log('Login successful, navigating...');
         toast({
           title: "Login Successful",
           description: `Welcome back, ${username}!`,
           variant: "default",
         });
 
-        // Redirect to home page
-        navigate('/');
+        // Add a small delay to ensure state is updated before navigation
+        setTimeout(() => {
+          console.log('Executing navigation...');
+          navigate('/');
+        }, 100);
       } else {
         toast({
           title: "Login Failed",

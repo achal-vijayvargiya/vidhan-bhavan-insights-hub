@@ -22,6 +22,7 @@ import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 interface Debate {
   id: number;
   kramank_id: number;
+  title: string;  // Add title field
   topic: string;
   members: string[] | string;
   date: string;
@@ -166,6 +167,15 @@ const DebateEditModal: React.FC<DebateEditModalProps> = ({
                   value={formData.image_name || ''}
                   readOnly
                   className="bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={formData.title || ''}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  placeholder="Enter debate title"
                 />
               </div>
               <div className="space-y-2">

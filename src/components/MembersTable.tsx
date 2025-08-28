@@ -39,6 +39,9 @@ interface MembersTableProps {
 }
 
 const MembersTable: React.FC<MembersTableProps> = ({ data, loading }) => {
+  // Ensure data is always an array
+  const safeData = Array.isArray(data) ? data : [];
+  
   if (loading) {
     return (
       <div className="space-y-3">
@@ -63,14 +66,14 @@ const MembersTable: React.FC<MembersTableProps> = ({ data, loading }) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.length === 0 ? (
+          {safeData.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                 No member records found
               </TableCell>
             </TableRow>
           ) : (
-            data.map((member) => (
+            safeData.map((member) => (
               <TableRow key={member.id} className="hover:bg-gray-50 transition-colors">
                 <TableCell className="font-medium font-mono">{member.id}</TableCell>
                 <TableCell>{member.name}</TableCell>

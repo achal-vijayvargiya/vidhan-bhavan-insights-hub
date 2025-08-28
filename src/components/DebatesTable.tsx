@@ -16,9 +16,11 @@ import DebateEditModal from './DebateEditModal';
 interface Debate {
   id: number;
   kramank_id: number;
+  sequence_number: number;
+  title: string;  // Add title field
   topic: string;
   members: string[] | string;
-  date: string;
+  date: string;  // Date in Marathi or string format
   text: string;
   status?: string;
   user?: string;
@@ -35,6 +37,9 @@ interface DebatesTableProps {
 const DebatesTable: React.FC<DebatesTableProps> = ({ data, loading, onUpdate }) => {
   const [selectedDebate, setSelectedDebate] = useState<Debate | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Sort debates by sequence number in ascending order
+  const sortedDebates = [...data].sort((a, b) => a.sequence_number - b.sequence_number);
 
   const handleViewDebate = (debate: Debate) => {
     setSelectedDebate(debate);
@@ -63,6 +68,8 @@ const DebatesTable: React.FC<DebatesTableProps> = ({ data, loading, onUpdate }) 
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
+              <TableHead className="font-semibold">Sequence No.</TableHead>
+              <TableHead className="font-semibold">Title</TableHead>
               <TableHead className="font-semibold">Topic</TableHead>
               <TableHead className="font-semibold">Members</TableHead>
               <TableHead className="font-semibold">Date</TableHead>
@@ -74,14 +81,16 @@ const DebatesTable: React.FC<DebatesTableProps> = ({ data, loading, onUpdate }) 
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                   No debates found
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((debate: Debate) => (
+              sortedDebates.map((debate: Debate) => (
                 <TableRow key={debate.id} className="hover:bg-gray-50 transition-colors">
-                  <TableCell className="font-medium">{debate.topic}</TableCell>
+                  <TableCell className="font-medium">{debate.sequence_number}</TableCell>
+                  <TableCell className="max-w-xs truncate">{debate.title || 'N/A'}</TableCell>
+                  <TableCell className="max-w-xs truncate">{debate.topic || 'N/A'}</TableCell>
                   <TableCell>{Array.isArray(debate.members) ? debate.members.join(', ') : debate.members}</TableCell>
                   <TableCell>{debate.date}</TableCell>
                   <TableCell>{debate.kramank_id}</TableCell>

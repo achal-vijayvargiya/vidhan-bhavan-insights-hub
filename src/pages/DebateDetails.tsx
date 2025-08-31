@@ -220,7 +220,7 @@ const DebateDetails: React.FC = () => {
             <h3 className="font-semibold text-base">PDF Document</h3>
             {formData.document_name && (
               <a
-                href={`/api/pdf/${formData.document_name}`}
+                href={`/api/pdf/${id}`}
                 download={formData.document_name}
                 className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
                 onClick={(e) => e.stopPropagation()}
@@ -233,7 +233,7 @@ const DebateDetails: React.FC = () => {
             {formData.document_name ? (
               <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
                 <Viewer
-                  fileUrl={`/api/pdf/${formData.document_name}`}
+                  fileUrl={`/api/pdf/${id}`}
                   plugins={[defaultLayoutPluginInstance]}
                   defaultScale={1}
                   theme="dark"

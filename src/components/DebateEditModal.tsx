@@ -34,7 +34,8 @@ interface Debate {
   document_name?: string;  // Added for PDF file name
   question_number?: number[] | number;
   topics?: string[] | string;
-  answers_by?: string[] | string;
+  question_by?: string;  // Who initiated the question/topic
+  answer_by?: string;    // Who provided answers/responses (backend field name)
   lob_type?: string;      // Line of Business Type
   lob?: string;           // Line of Business
   sub_lob?: string;       // Sub Line of Business
@@ -263,12 +264,21 @@ const DebateEditModal: React.FC<DebateEditModalProps> = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="answers_by">Answers By (comma separated)</Label>
+                <Label htmlFor="question_by">Question By (Who initiated)</Label>
                 <Input
-                  id="answers_by"
-                  value={Array.isArray(formData.answers_by) ? formData.answers_by.join(', ') : (formData.answers_by || '')}
-                  onChange={(e) => handleInputChange('answers_by', e.target.value)}
-                  placeholder="Enter answers by, separated by commas"
+                  id="question_by"
+                  value={formData.question_by || ''}
+                  onChange={(e) => handleInputChange('question_by', e.target.value)}
+                  placeholder="Enter who initiated the question/topic"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="answer_by">Answers By (Who responded)</Label>
+                <Input
+                  id="answer_by"
+                  value={formData.answer_by || ''}
+                  onChange={(e) => handleInputChange('answer_by', e.target.value)}
+                  placeholder="Enter who provided answers/responses"
                 />
               </div>
             </div>

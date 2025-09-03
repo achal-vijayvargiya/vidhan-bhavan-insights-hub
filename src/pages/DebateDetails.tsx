@@ -26,7 +26,8 @@ interface Debate {
   document_name?: string;
   question_number?: number[] | number;
   topics?: string[] | string;
-  answers_by?: string[] | string;
+  question_by?: string;  // Who initiated the question/topic
+  answer_by?: string;    // Who provided answers/responses (backend field name)
   lob_type?: string;
   lob?: string;
   sub_lob?: string;
@@ -66,11 +67,26 @@ const DebateDetails: React.FC = () => {
     if (id) fetchDebate();
   }, [id]);
 
-  const handleInputChange = (field: keyof Debate, value: string | number) => {
+  const handleInputChange = (field: keyof Debate, value: string | number | string[]) => {
     if (!formData) return;
+    
+    // Handle special cases for specific fields
+    let processedValue: string | number | string[] = value;
+    
+    if (field === 'members' && typeof value === 'string') {
+      // Convert comma-separated string to array for members
+      processedValue = value.split(',').map(m => m.trim()).filter(Boolean);
+    } else if (field === 'question_number' && typeof value === 'string') {
+      // Convert comma-separated string to array for question numbers
+      processedValue = value.split(',').map(q => q.trim()).filter(Boolean);
+    } else if (field === 'topics' && typeof value === 'string') {
+      // Convert comma-separated string to array for topics
+      processedValue = value.split(',').map(t => t.trim()).filter(Boolean);
+    }
+    
     setFormData(prev => ({
       ...prev!,
-      [field]: value,
+      [field]: processedValue,
     }));
   };
 
@@ -78,19 +94,12 @@ const DebateDetails: React.FC = () => {
     if (!formData) return;
     setIsLoading(true);
     try {
-      const updatedDebate = {
-        ...formData,
-        members: typeof formData.members === 'string' 
-          ? formData.members.split(',').map(m => m.trim()).filter(Boolean) 
-          : formData.members,
-      };
-
       const response = await fetch(`/api/debates/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedDebate),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) throw new Error('Failed to update debate');
@@ -301,7 +310,7 @@ const DebateDetails: React.FC = () => {
                 className="text-sm"
               />
             </div>
-                          <div className="grid grid-cols-3 gap-4">
+                          <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="date" className="text-sm">Date</Label>
                   <Input
@@ -309,17 +318,6 @@ const DebateDetails: React.FC = () => {
                     value={formData.date || ''}
                     onChange={(e) => handleInputChange('date', e.target.value)}
                     placeholder="Enter date"
-                    className="text-sm"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="kramank_id" className="text-sm">Kramank ID</Label>
-                  <Input
-                    id="kramank_id"
-                    type="number"
-                    value={formData.kramank_id}
-                    onChange={(e) => handleInputChange('kramank_id', parseInt(e.target.value))}
-                    placeholder="Kramank ID"
                     className="text-sm"
                   />
                 </div>
@@ -376,12 +374,22 @@ const DebateDetails: React.FC = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="answers_by" className="text-sm">Answers By (comma separated)</Label>
+              <Label htmlFor="question_by" className="text-sm">Question By (Who initiated)</Label>
               <Input
-                id="answers_by"
-                value={Array.isArray(formData.answers_by) ? formData.answers_by.join(', ') : (formData.answers_by || '')}
-                onChange={(e) => handleInputChange('answers_by', e.target.value)}
-                placeholder="Enter answers by, separated by commas"
+                id="question_by"
+                value={formData.question_by || ''}
+                onChange={(e) => handleInputChange('question_by', e.target.value)}
+                placeholder="Enter who initiated the question/topic"
+                className="text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="answer_by" className="text-sm">Answers By (Who responded)</Label>
+              <Input
+                id="answer_by"
+                value={formData.answer_by || ''}
+                onChange={(e) => handleInputChange('answer_by', e.target.value)}
+                placeholder="Enter who provided answers/responses"
                 className="text-sm"
               />
             </div>
